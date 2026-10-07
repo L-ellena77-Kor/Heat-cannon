@@ -63,7 +63,7 @@ button:focus-visible{outline:3px solid var(--text);outline-offset:3px}
 .hud{display:flex;justify-content:space-between;align-items:center;padding:14px 18px 6px;font-family:var(--display);font-size:26px;gap:8px}
 .hud .combo{color:var(--c);flex:1;text-align:center;transition:transform .2s;white-space:nowrap}
 .hud .combo.pop{transform:scale(1.4)}
-.hud .mute{font-size:26px;padding:2px 4px}
+.hud .mute{font-size:24px;line-height:1;padding:2px 4px}
 .dots{display:flex;gap:5px;justify-content:center;padding:0 18px;flex-wrap:nowrap}
 .dots i{flex:1;height:6px;border-radius:3px;background:var(--line);max-width:30px}
 .dots i.ok{background:var(--good)} .dots i.no{background:var(--bad)} .dots i.now{background:var(--text)}
@@ -93,9 +93,14 @@ button:focus-visible{outline:3px solid var(--text);outline-offset:3px}
 .cannon:not(:disabled):active{transform:scale(.94)}
 .cannon:disabled{opacity:.45;cursor:default}
 .cannon.fired{opacity:1}
-.cannon .gun{width:64px;height:64px;position:relative}
-.cannon .barrel{position:absolute;left:50%;bottom:22px;width:20px;height:44px;margin-left:-10px;border-radius:8px 8px 4px 4px;background:var(--k);transform-origin:50% 100%;transition:transform .25s}
-.cannon .base{position:absolute;left:50%;bottom:0;width:56px;height:30px;margin-left:-28px;border-radius:28px 28px 8px 8px;background:color-mix(in srgb,var(--k) 55%,var(--bg))}
+.cannon .gun{width:92px;height:70px;position:relative;color:var(--k)}
+.cannon .barrel{position:absolute;left:50%;bottom:20px;width:34px;height:42px;margin-left:-17px;transform-origin:50% 100%;transition:transform .25s cubic-bezier(.3,1.5,.5,1)}
+.cannon .barrel svg,.cannon .base svg{display:block;width:100%;height:100%;overflow:visible}
+.cannon .base{position:absolute;left:0;bottom:0;width:92px;height:44px;z-index:1}
+.cannon:not(:disabled) .gun{animation:idle 2.4s ease-in-out infinite}
+.cannon[data-k="s"]:not(:disabled) .gun{animation-delay:-.8s}
+.cannon[data-k="x"]:not(:disabled) .gun{animation-delay:-1.6s}
+@keyframes idle{50%{transform:translateY(-3px)}}
 .cannon .name{font-family:var(--display);font-size:clamp(21px,6.2vw,30px);color:var(--k);line-height:1;white-space:nowrap}
 .cannon .hint{white-space:nowrap;font-size:clamp(13px,4vw,17px);color:var(--muted);text-align:center;line-height:1.3;word-break:keep-all}
 
@@ -164,7 +169,7 @@ button:focus-visible{outline:3px solid var(--text);outline-offset:3px}
     <div class="chain"><span>100</span><i>→</i><span>120</span><i>→</i><span>140</span><i>→</i><span>160</span></div></div></div>
   <div class="tip"><div class="ic">🔁</div><div><div class="tt">틀린 카드는 <em>한 번 더</em> 나와요</div><div class="dd">마지막에 다시 나온 카드를 맞히면 +50점이에요.</div></div></div>
   <div class="key">⏸ 시간 점수는 없어요!<br>빨리 쏘는 것보다 정확하게 쏘는 사람이 이겨요</div>
-  <p class="sound-note">🔊 소리를 켜면 더 재미있어요</p>
+  <p class="sound-note">🔊 소리를 켜면 더 재미있어요 · 🎵 음악은 게임 화면에서 끌 수 있어요</p>
   <button class="big" id="play">게임 시작</button>
 </section>
 
@@ -174,17 +179,18 @@ button:focus-visible{outline:3px solid var(--text);outline-offset:3px}
     <span id="sc">0점</span>
     <span class="combo" id="cb"></span>
     <span id="pg">1 / 12</span>
-    <button class="mute" id="mute" aria-label="소리 끄기">🔊</button>
+    <button class="mute" id="music" aria-label="음악 끄기">🎵</button><button class="mute" id="mute" aria-label="효과음 끄기">🔊</button>
   </div>
   <div class="dots" id="dots"></div>
   <div class="arena">
     <div class="card" id="card"><div class="emo" id="emo"></div><div class="txt" id="txt"></div></div>
     <div class="think" id="think">⏸ 시간이 멈췄어요. 천천히 생각해요</div>
   </div>
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><linearGradient id="bshade" x1="0" x2="1"><stop offset="0" stop-color="#000" stop-opacity=".28"/><stop offset=".35" stop-color="#fff" stop-opacity=".18"/><stop offset=".6" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".35"/></linearGradient><linearGradient id="dshade" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".25"/><stop offset=".5" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".3"/></linearGradient></defs></svg>
   <div class="cannons">
-    <button class="cannon" data-k="c" style="--k:var(--c)"><div class="gun"><div class="base"></div><div class="barrel"></div></div><div class="name">열전도도</div><div class="hint">얼마나 빨리<br>이동하나</div></button>
-    <button class="cannon" data-k="s" style="--k:var(--s)"><div class="gun"><div class="base"></div><div class="barrel"></div></div><div class="name">비열</div><div class="hint">온도가 몇 도<br>오르나</div></button>
-    <button class="cannon" data-k="x" style="--k:var(--x)"><div class="gun"><div class="base"></div><div class="barrel"></div></div><div class="name">열팽창</div><div class="hint">얼마나<br>늘어나나</div></button>
+    <button class="cannon" data-k="c" style="--k:var(--c)"><div class="gun"><div class="base"><svg viewBox="0 0 92 44" aria-hidden="true"><path d="M16 32A30 24 0 0 1 76 32Z" fill="currentColor"/><path d="M16 32A30 24 0 0 1 76 32Z" fill="url(#dshade)"/><path d="M28 24h36" stroke="#1b1932" stroke-width="5" stroke-linecap="round" opacity=".35"/><circle cx="34" cy="24" r="1.8" fill="#fff" opacity=".8"/><circle cx="46" cy="24" r="1.8" fill="#fff" opacity=".8"/><circle cx="58" cy="24" r="1.8" fill="#fff" opacity=".8"/><rect x="4" y="31" width="84" height="11" rx="4" fill="#3d3866"/><rect x="4" y="31" width="84" height="3.5" rx="1.5" fill="#57508a"/><path d="M14 38h64" stroke="#1b1932" stroke-width="2" stroke-dasharray="6 4" opacity=".6"/></svg></div><div class="barrel"><svg viewBox="0 0 34 42" aria-hidden="true"><rect x="7" y="8" width="20" height="34" rx="2" fill="currentColor"/><rect x="7" y="8" width="20" height="34" rx="2" fill="url(#bshade)"/><rect x="3" y="0" width="28" height="11" rx="2.5" fill="currentColor"/><rect x="3" y="0" width="28" height="11" rx="2.5" fill="url(#bshade)"/><rect x="9" y="2.5" width="16" height="4" rx="1" fill="#120f24"/><path d="M11 16h12M11 21h12M11 26h12" stroke="#1b1932" stroke-width="2" opacity=".4" stroke-linecap="round"/></svg></div></div><div class="name">열전도도</div><div class="hint">얼마나 빨리<br>이동하나</div></button>
+    <button class="cannon" data-k="s" style="--k:var(--s)"><div class="gun"><div class="base"><svg viewBox="0 0 92 44" aria-hidden="true"><path d="M16 32A30 24 0 0 1 76 32Z" fill="currentColor"/><path d="M16 32A30 24 0 0 1 76 32Z" fill="url(#dshade)"/><path d="M28 24h36" stroke="#1b1932" stroke-width="5" stroke-linecap="round" opacity=".35"/><circle cx="34" cy="24" r="1.8" fill="#fff" opacity=".8"/><circle cx="46" cy="24" r="1.8" fill="#fff" opacity=".8"/><circle cx="58" cy="24" r="1.8" fill="#fff" opacity=".8"/><rect x="4" y="31" width="84" height="11" rx="4" fill="#3d3866"/><rect x="4" y="31" width="84" height="3.5" rx="1.5" fill="#57508a"/><path d="M14 38h64" stroke="#1b1932" stroke-width="2" stroke-dasharray="6 4" opacity=".6"/></svg></div><div class="barrel"><svg viewBox="0 0 34 42" aria-hidden="true"><rect x="7" y="8" width="20" height="34" rx="2" fill="currentColor"/><rect x="7" y="8" width="20" height="34" rx="2" fill="url(#bshade)"/><rect x="3" y="0" width="28" height="11" rx="2.5" fill="currentColor"/><rect x="3" y="0" width="28" height="11" rx="2.5" fill="url(#bshade)"/><rect x="9" y="2.5" width="16" height="4" rx="1" fill="#120f24"/><path d="M11 16h12M11 21h12M11 26h12" stroke="#1b1932" stroke-width="2" opacity=".4" stroke-linecap="round"/></svg></div></div><div class="name">비열</div><div class="hint">온도가 몇 도<br>오르나</div></button>
+    <button class="cannon" data-k="x" style="--k:var(--x)"><div class="gun"><div class="base"><svg viewBox="0 0 92 44" aria-hidden="true"><path d="M16 32A30 24 0 0 1 76 32Z" fill="currentColor"/><path d="M16 32A30 24 0 0 1 76 32Z" fill="url(#dshade)"/><path d="M28 24h36" stroke="#1b1932" stroke-width="5" stroke-linecap="round" opacity=".35"/><circle cx="34" cy="24" r="1.8" fill="#fff" opacity=".8"/><circle cx="46" cy="24" r="1.8" fill="#fff" opacity=".8"/><circle cx="58" cy="24" r="1.8" fill="#fff" opacity=".8"/><rect x="4" y="31" width="84" height="11" rx="4" fill="#3d3866"/><rect x="4" y="31" width="84" height="3.5" rx="1.5" fill="#57508a"/><path d="M14 38h64" stroke="#1b1932" stroke-width="2" stroke-dasharray="6 4" opacity=".6"/></svg></div><div class="barrel"><svg viewBox="0 0 34 42" aria-hidden="true"><rect x="7" y="8" width="20" height="34" rx="2" fill="currentColor"/><rect x="7" y="8" width="20" height="34" rx="2" fill="url(#bshade)"/><rect x="3" y="0" width="28" height="11" rx="2.5" fill="currentColor"/><rect x="3" y="0" width="28" height="11" rx="2.5" fill="url(#bshade)"/><rect x="9" y="2.5" width="16" height="4" rx="1" fill="#120f24"/><path d="M11 16h12M11 21h12M11 26h12" stroke="#1b1932" stroke-width="2" opacity=".4" stroke-linecap="round"/></svg></div></div><div class="name">열팽창</div><div class="hint">얼마나<br>늘어나나</div></button>
   </div>
   <div class="sheet" id="sheet" role="dialog" aria-live="polite">
     <h2 id="sh"></h2>
@@ -294,6 +300,45 @@ const sfx={
   end(){[523,659,784,1047].forEach((f,i)=>tone('triangle',f,f,.32,.25,i*.13));tone('sine',1047,1047,.8,.15,.52)}
 };
 
+/* ================= BGM (잔잔하고 경쾌한 반복 음악) ================= */
+let bgmOn=true,bgmGain=null,bgmTimer=null,bgmStep=0,bgmNext=0;
+const mf=m=>440*Math.pow(2,(m-69)/12);
+const MEL=[ // 8분음표 64개 = 8마디 (C-Am-F-G 두 번)
+ 72,76,79,76, 74,76,72,0,  69,72,76,72, 74,72,69,0,  65,69,72,74, 76,74,72,69,  67,71,74,76, 74,0,71,0,
+ 79,0,76,79, 81,79,76,0,   76,0,72,76, 77,76,72,0,  72,74,76,77, 79,77,76,74, 74,76,74,71, 72,0,0,0];
+const BASS=[48,45,41,43];
+function bgmNote(type,m,t,dur,vol){
+  const o=AC.createOscillator(),g=AC.createGain();o.type=type;o.frequency.value=mf(m);
+  g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(vol,t+.02);g.gain.exponentialRampToValueAtTime(.0001,t+dur);
+  o.connect(g);g.connect(bgmGain);o.start(t);o.stop(t+dur+.05);
+}
+function bgmHat(t,vol){
+  const s=AC.createBufferSource(),f=AC.createBiquadFilter(),g=AC.createGain();s.buffer=noiseB;f.type='highpass';f.frequency.value=7000;
+  g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(.0001,t+.05);s.connect(f);f.connect(g);g.connect(bgmGain);s.start(t);s.stop(t+.08);
+}
+function bgmTick(){
+  const E=60/116/2; // 8분음표 길이
+  while(bgmNext<AC.currentTime+.25){
+    const i=bgmStep%64,bar=Math.floor(i/8)%4,t=bgmNext;
+    if(MEL[i])bgmNote('triangle',MEL[i],t,E*1.6,.16);
+    if(i%4===0)bgmNote('sine',BASS[bar],t,E*1.8,.28);
+    if(i%4===2)bgmNote('sine',BASS[bar]+7,t,E*1.4,.18);
+    if(i%2===1)bgmHat(t,.05);
+    bgmStep++;bgmNext+=E;
+  }
+}
+function bgmStart(){
+  if(!bgmOn||!ac()||bgmTimer)return;
+  if(!bgmGain){bgmGain=AC.createGain();bgmGain.gain.value=.32;bgmGain.connect(master)}
+  bgmGain.gain.cancelScheduledValues(AC.currentTime);bgmGain.gain.setValueAtTime(.0001,AC.currentTime);bgmGain.gain.exponentialRampToValueAtTime(.32,AC.currentTime+1.2);
+  bgmStep=0;bgmNext=AC.currentTime+.1;bgmTick();bgmTimer=setInterval(bgmTick,60);
+}
+function bgmStop(){
+  if(!bgmTimer)return;clearInterval(bgmTimer);bgmTimer=null;
+  if(AC&&bgmGain){bgmGain.gain.cancelScheduledValues(AC.currentTime);bgmGain.gain.setValueAtTime(bgmGain.gain.value,AC.currentTime);bgmGain.gain.linearRampToValueAtTime(0,AC.currentTime+.4)}
+}
+document.addEventListener('visibilitychange',()=>{if(!AC)return;document.hidden?AC.suspend():AC.resume()});
+
 /* ================= GAME ================= */
 function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
 function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('on',s.id===id))}
@@ -310,7 +355,7 @@ function start(){
   stats={c:[0,0],s:[0,0],x:[0,0]};
   $('dots').innerHTML='<i></i>'.repeat(total);
   $('sc').textContent='0점';$('cb').textContent='';
-  show('game');next(true);
+  show('game');next(true);bgmStart();
 }
 
 function next(first){
@@ -339,9 +384,11 @@ function fire(btn){
   btn.classList.add('fired');
   $('think').style.visibility='hidden';
   const barrel=btn.querySelector('.barrel');
-  const from=center(barrel),to=center($('card'));
-  const ang=Math.atan2(to.x-from.x,from.y-to.y)*180/Math.PI;
+  const br=barrel.getBoundingClientRect(),piv={x:br.left+br.width/2,y:br.top+br.height};
+  const to=center($('card'));
+  const rad=Math.atan2(to.x-piv.x,piv.y-to.y),ang=rad*180/Math.PI;
   barrel.style.transform=`rotate(${ang}deg)`;
+  const L=br.height*.98,from={x:piv.x+Math.sin(rad)*L,y:piv.y-Math.cos(rad)*L};
   sfx.fire();
   // 반동 + 포구 화염
   if(!reduce){
@@ -426,7 +473,7 @@ function result(ok){
 }
 
 function finish(){
-  show('end');sfx.end();
+  show('end');bgmStop();sfx.end();
   const right=Object.values(stats).reduce((s,v)=>s+v[0],0);
   $('fs').textContent=score;
   $('fa').textContent=`처음에 맞힌 문제 ${right} / ${total}`;
@@ -500,7 +547,8 @@ $('go').onclick=()=>{ac();sfx.click();show('guide')};
 $('play').onclick=start;
 $('again').onclick=start;
 $('next').onclick=()=>next(false);
-$('mute').onclick=()=>{muted=!muted;$('mute').textContent=muted?'🔇':'🔊';$('mute').setAttribute('aria-label',muted?'소리 켜기':'소리 끄기');if(!muted)sfx.click()};
+$('music').onclick=()=>{bgmOn=!bgmOn;$('music').style.opacity=bgmOn?1:.35;$('music').setAttribute('aria-label',bgmOn?'음악 끄기':'음악 켜기');bgmOn?bgmStart():bgmStop()};
+$('mute').onclick=()=>{muted=!muted;$('mute').textContent=muted?'🔇':'🔊';$('mute').setAttribute('aria-label',muted?'효과음 켜기':'효과음 끄기');if(!muted)sfx.click()};
 document.querySelectorAll('.cannon').forEach(b=>b.onclick=()=>fire(b));
 </script>
 </body>
