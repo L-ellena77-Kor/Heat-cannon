@@ -64,6 +64,10 @@ button:focus-visible{outline:3px solid var(--text);outline-offset:3px}
 .hud .combo{color:var(--c);flex:1;text-align:center;transition:transform .2s;white-space:nowrap}
 .hud .combo.pop{transform:scale(1.4)}
 .hud .mute{font-size:24px;line-height:1;padding:2px 4px}
+.fs-ico{display:inline-block;width:1em;height:1em;vertical-align:-.12em}
+.fs-btn{font-family:var(--display);font-size:22px;padding:12px;border-radius:16px;border:2px solid var(--line);color:var(--text);width:100%;display:flex;align-items:center;justify-content:center;gap:10px;white-space:nowrap}
+.fs-btn:active{transform:scale(.97)}
+.no-fs .fs-only{display:none!important}
 .dots{display:flex;gap:5px;justify-content:center;padding:0 18px;flex-wrap:nowrap}
 .dots i{flex:1;height:6px;border-radius:3px;background:var(--line);max-width:30px}
 .dots i.ok{background:var(--good)} .dots i.no{background:var(--bad)} .dots i.now{background:var(--text)}
@@ -157,6 +161,7 @@ button:focus-visible{outline:3px solid var(--text);outline-offset:3px}
     <div style="--k:var(--s)"><b>비열</b><span>같은 열을 받으면 온도가 <strong>몇 도 오르나</strong>?</span></div>
     <div style="--k:var(--x)"><b>열팽창</b><span>온도가 오르면 <strong>얼마나 늘어나나</strong>?</span></div>
   </div>
+  <button class="fs-btn fs-only" id="fsStart"><svg class="fs-ico" viewBox="0 0 24 24" aria-hidden="true"><path class="fs-in" d="M3 9V3h6M21 9V3h-6M3 15v6h6M21 15v6h-6" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/><path class="fs-out" d="M9 3v6H3M15 3v6h6M9 21v-6H3M15 21v-6h6" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" style="display:none"/></svg><span class="fs-label">전체 화면으로 보기</span></button>
   <button class="big" id="go">시작하기</button>
   <div class="copy">Copyright 2026 엘레나</div>
 </section>
@@ -178,8 +183,8 @@ button:focus-visible{outline:3px solid var(--text);outline-offset:3px}
   <div class="hud">
     <span id="sc">0점</span>
     <span class="combo" id="cb"></span>
-    <span id="pg">1 / 12</span>
-    <button class="mute" id="music" aria-label="음악 끄기">🎵</button><button class="mute" id="mute" aria-label="효과음 끄기">🔊</button>
+    <span id="pg">1 / 18</span>
+    <button class="mute fs-only" id="fsGame" aria-label="전체 화면"><svg class="fs-ico" viewBox="0 0 24 24" aria-hidden="true"><path class="fs-in" d="M3 9V3h6M21 9V3h-6M3 15v6h6M21 15v6h-6" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/><path class="fs-out" d="M9 3v6H3M15 3v6h6M9 21v-6H3M15 21v-6h6" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" style="display:none"/></svg></button><button class="mute" id="music" aria-label="음악 끄기">🎵</button><button class="mute" id="mute" aria-label="효과음 끄기">🔊</button>
   </div>
   <div class="dots" id="dots"></div>
   <div class="arena">
@@ -349,8 +354,7 @@ function anim(el,kf,opt){const a=el.animate(kf,opt);a.onfinish=()=>el.remove();r
 function start(){
   ac();sfx.click();
   queue=[];
-  ['c','s','x'].forEach(k=>queue.push(...shuffle(BANK.filter(b=>b.a===k)).slice(0,PER).map(b=>({...b,retry:false}))));
-  shuffle(queue);
+  queue=shuffle(BANK.map(b=>({...b,retry:false})));
   total=queue.length;done=0;score=0;combo=0;missed=[];
   stats={c:[0,0],s:[0,0],x:[0,0]};
   $('dots').innerHTML='<i></i>'.repeat(total);
@@ -547,6 +551,27 @@ $('go').onclick=()=>{ac();sfx.click();show('guide')};
 $('play').onclick=start;
 $('again').onclick=start;
 $('next').onclick=()=>next(false);
+/* ================= FULLSCREEN ================= */
+const fsEl=()=>document.fullscreenElement||document.webkitFullscreenElement;
+const fsOK=!!(document.documentElement.requestFullscreen||document.documentElement.webkitRequestFullscreen);
+if(!fsOK)document.documentElement.classList.add('no-fs');
+function fsToggle(){
+  const d=document.documentElement;
+  try{
+    if(fsEl())(document.exitFullscreen||document.webkitExitFullscreen).call(document);
+    else{const r=(d.requestFullscreen||d.webkitRequestFullscreen).call(d);if(r&&r.catch)r.catch(()=>{})}
+  }catch(e){}
+}
+function fsSync(){
+  const on=!!fsEl();
+  document.querySelectorAll('.fs-in').forEach(e=>e.style.display=on?'none':'');
+  document.querySelectorAll('.fs-out').forEach(e=>e.style.display=on?'':'none');
+  document.querySelectorAll('.fs-label').forEach(e=>e.textContent=on?'전체 화면 끝내기':'전체 화면으로 보기');
+  $('fsGame').setAttribute('aria-label',on?'전체 화면 끝내기':'전체 화면');
+}
+document.addEventListener('fullscreenchange',fsSync);document.addEventListener('webkitfullscreenchange',fsSync);
+$('fsStart').onclick=fsToggle;$('fsGame').onclick=fsToggle;
+
 $('music').onclick=()=>{bgmOn=!bgmOn;$('music').style.opacity=bgmOn?1:.35;$('music').setAttribute('aria-label',bgmOn?'음악 끄기':'음악 켜기');bgmOn?bgmStart():bgmStop()};
 $('mute').onclick=()=>{muted=!muted;$('mute').textContent=muted?'🔇':'🔊';$('mute').setAttribute('aria-label',muted?'효과음 켜기':'효과음 끄기');if(!muted)sfx.click()};
 document.querySelectorAll('.cannon').forEach(b=>b.onclick=()=>fire(b));
