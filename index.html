@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>열 대포 — 열전도도·비열·열팽창</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Jua&family=Gowun+Dodum&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#1b1932; --bg2:#25223f; --panel:#2c2850; --line:#3d3866;
+  --text:#f4f1ff; --muted:#b4add6;
+  --c:#ff7a45; --s:#3fc1c9; --x:#b78cff;
+  --good:#7ee08a; --bad:#ff6b7a; --gold:#ffd166;
+  --display:"Jua","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  --body:"Gowun Dodum","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){ --bg:#1b1932; } }
+:root[data-theme="dark"]{ --bg:#1b1932; }
+*,*::before,*::after{box-sizing:inherit}
+html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
+body{height:100%;margin:0;background:var(--bg);color:var(--text);font-family:var(--body);overflow:hidden;-webkit-tap-highlight-color:transparent}
+button{font:inherit;color:inherit;cursor:pointer;border:none;background:none}
+button:focus-visible{outline:3px solid var(--text);outline-offset:3px}
+
+.screen{position:absolute;inset:0;display:none;flex-direction:column;max-width:620px;margin:0 auto}
+.screen.on{display:flex}
+
+/* ---------- start ---------- */
+#start{padding:28px 20px 20px;justify-content:center;gap:22px;overflow-y:auto}
+#start h1{font-family:var(--display);font-weight:400;font-size:clamp(46px,14vw,72px);margin:0;line-height:1;text-align:center;
+  background:linear-gradient(90deg,var(--c),var(--s) 50%,var(--x));-webkit-background-clip:text;background-clip:text;color:transparent}
+#start .sub{text-align:center;color:var(--muted);font-size:21px;margin:-8px 0 4px}
+.intro{display:flex;flex-direction:column;gap:12px}
+.intro div{display:flex;align-items:center;gap:14px;background:var(--bg2);border-left:6px solid var(--k);border-radius:14px;padding:14px 16px}
+.intro b{font-family:var(--display);font-weight:400;font-size:28px;color:var(--k);min-width:104px;white-space:nowrap}
+.intro span{font-size:21px;line-height:1.35;word-break:keep-all}
+.big{font-family:var(--display);font-size:31px;padding:16px;border-radius:18px;background:var(--text);color:var(--bg);width:100%}
+.big:active{transform:scale(.97)}
+.copy{text-align:center;font-size:14px;color:var(--muted);opacity:.7;white-space:nowrap}
+
+/* ---------- guide ---------- */
+#guide{padding:26px 20px 20px;gap:14px;overflow-y:auto;justify-content:center}
+#guide h1{font-family:var(--display);font-weight:400;font-size:clamp(34px,10vw,46px);margin:0 0 4px;text-align:center;color:var(--gold)}
+.tip{display:flex;gap:14px;align-items:flex-start;background:var(--bg2);border-radius:16px;padding:14px 16px}
+.tip .ic{font-size:40px;line-height:1;flex:none}
+.tip .tt{font-family:var(--display);font-size:27px;line-height:1.25;margin-bottom:4px}
+.tip .tt em{font-style:normal;color:var(--gold)}
+.tip .dd{font-size:19px;color:var(--muted);line-height:1.45;word-break:keep-all}
+.chain{display:flex;align-items:center;gap:6px;margin-top:8px;flex-wrap:nowrap;font-family:var(--display);font-size:21px}
+.chain span{background:var(--panel);border-radius:10px;padding:3px 9px;white-space:nowrap}
+.chain span:nth-child(odd){color:var(--gold)}
+.chain i{font-style:normal;color:var(--muted)}
+.key{text-align:center;font-family:var(--display);font-size:25px;line-height:1.4;background:color-mix(in srgb,var(--gold) 14%,var(--bg));border:2px dashed var(--gold);border-radius:16px;padding:12px;margin:2px 0 4px;word-break:keep-all}
+.sound-note{text-align:center;color:var(--muted);font-size:18px;margin:0}
+
+/* ---------- game ---------- */
+#game{height:100%}
+.hud{display:flex;justify-content:space-between;align-items:center;padding:14px 18px 6px;font-family:var(--display);font-size:26px;gap:8px}
+.hud .combo{color:var(--c);flex:1;text-align:center;transition:transform .2s;white-space:nowrap}
+.hud .combo.pop{transform:scale(1.4)}
+.hud .mute{font-size:26px;padding:2px 4px}
+.dots{display:flex;gap:5px;justify-content:center;padding:0 18px;flex-wrap:nowrap}
+.dots i{flex:1;height:6px;border-radius:3px;background:var(--line);max-width:30px}
+.dots i.ok{background:var(--good)} .dots i.no{background:var(--bad)} .dots i.now{background:var(--text)}
+
+.arena{flex:1;position:relative;display:flex;align-items:center;justify-content:center;padding:10px 18px;min-height:0}
+.card{width:100%;max-width:440px;background:var(--panel);border:2px solid var(--line);border-radius:22px;padding:22px 20px 24px;text-align:center;position:relative}
+.card .emo{font-size:clamp(54px,16vw,76px);line-height:1;margin-bottom:12px}
+.card .emo svg{height:clamp(64px,19vw,92px);width:auto;display:inline-block}
+.missed svg{height:1.5em;width:auto;vertical-align:middle}
+.badge-box{display:flex;flex-direction:column;align-items:center;gap:12px;background:var(--bg2);border:2px solid var(--gold);border-radius:20px;padding:16px}
+.badge-box h3{font-family:var(--display);font-weight:400;font-size:29px;color:var(--gold);margin:0}
+.badge-box img{width:min(78vw,300px);height:auto;border-radius:18px}
+.badge-box input{font-family:var(--display);font-size:22px;padding:10px 14px;border-radius:12px;border:2px solid var(--line);background:var(--panel);color:var(--text);width:min(70vw,260px);text-align:center}
+.badge-box .big{background:var(--gold);color:var(--bg)}
+.badge-box p{margin:0;font-size:19px;color:var(--muted);text-align:center;word-break:keep-all}
+.no-badge{text-align:center;background:var(--bg2);border-radius:16px;padding:14px;font-size:20px;color:var(--muted);word-break:keep-all}
+.card .txt{font-family:var(--display);font-size:clamp(25px,7vw,34px);line-height:1.4;word-break:keep-all}
+.card .tag{position:absolute;top:-14px;left:50%;transform:translateX(-50%);background:var(--bad);color:#fff;font-family:var(--display);font-size:18px;padding:4px 14px;border-radius:20px;white-space:nowrap}
+.card.drop{animation:drop .55s cubic-bezier(.2,1.4,.4,1)}
+.card.shake{animation:shake .45s}
+.think{position:absolute;bottom:4px;left:0;right:0;text-align:center;color:var(--muted);font-size:19px}
+@keyframes drop{from{transform:translateY(-120%);opacity:0}to{transform:none;opacity:1}}
+@keyframes shake{20%,60%{transform:translateX(-12px) rotate(-2deg)}40%,80%{transform:translateX(12px) rotate(2deg)}}
+
+.cannons{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:8px 14px 16px}
+.cannon{display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px 4px 12px;border-radius:18px;background:var(--bg2);border:2px solid transparent;transition:transform .1s, opacity .2s}
+.cannon:not(:disabled):active{transform:scale(.94)}
+.cannon:disabled{opacity:.45;cursor:default}
+.cannon.fired{opacity:1}
+.cannon .gun{width:64px;height:64px;position:relative}
+.cannon .barrel{position:absolute;left:50%;bottom:22px;width:20px;height:44px;margin-left:-10px;border-radius:8px 8px 4px 4px;background:var(--k);transform-origin:50% 100%;transition:transform .25s}
+.cannon .base{position:absolute;left:50%;bottom:0;width:56px;height:30px;margin-left:-28px;border-radius:28px 28px 8px 8px;background:color-mix(in srgb,var(--k) 55%,var(--bg))}
+.cannon .name{font-family:var(--display);font-size:clamp(21px,6.2vw,30px);color:var(--k);line-height:1;white-space:nowrap}
+.cannon .hint{white-space:nowrap;font-size:clamp(13px,4vw,17px);color:var(--muted);text-align:center;line-height:1.3;word-break:keep-all}
+
+.fx{position:fixed;pointer-events:none;z-index:20}
+.ball{width:22px;height:22px;margin:-11px 0 0 -11px;border-radius:50%;box-shadow:0 0 18px 6px var(--k),0 0 40px 10px var(--k);background:#fff}
+.spark{border-radius:50%}
+.ring{border-radius:50%;border:6px solid var(--k);width:80px;height:80px;margin:-40px 0 0 -40px}
+.shard{background:var(--panel);border:2px solid var(--k);border-radius:10px}
+.flash{inset:0;background:#fff;z-index:30}
+.muzzle{width:46px;height:46px;margin:-23px 0 0 -23px;border-radius:50%;background:radial-gradient(circle,#fff 0 25%,var(--k) 55%,transparent 72%)}
+.score-pop{z-index:31;font-family:var(--display);font-size:42px;color:var(--gold);transform:translate(-50%,-50%);text-shadow:0 3px 0 rgba(0,0,0,.35);white-space:nowrap}
+.combo-pop{z-index:31;font-family:var(--display);font-size:clamp(34px,10vw,52px);color:var(--c);transform:translate(-50%,-50%);white-space:nowrap;text-shadow:0 0 18px var(--c)}
+
+/* ---------- explain sheet ---------- */
+.sheet{position:absolute;left:0;right:0;bottom:0;background:var(--bg2);border-top:4px solid var(--k);border-radius:24px 24px 0 0;padding:20px 20px 22px;transform:translateY(105%);transition:transform .3s ease;z-index:10}
+.sheet.on{transform:none}
+.sheet h2{font-family:var(--display);font-weight:400;font-size:36px;margin:0 0 10px}
+.sheet h2.ok{color:var(--good)} .sheet h2.no{color:var(--bad)}
+.sheet .ans{display:inline-block;font-family:var(--display);font-size:23px;background:var(--k);color:var(--bg);padding:4px 14px;border-radius:12px;margin-bottom:10px;white-space:nowrap}
+.sheet .q{font-size:19px;color:var(--muted);margin:0 0 6px}
+.sheet .why{font-size:24px;line-height:1.5;margin:0 0 18px;word-break:keep-all}
+.sheet .later{font-size:18px;color:var(--muted);margin:-8px 0 14px}
+
+/* ---------- end ---------- */
+#end{padding:28px 20px 20px;gap:18px;overflow-y:auto}
+#end h1{font-family:var(--display);font-weight:400;font-size:44px;margin:0;text-align:center}
+.final{text-align:center;font-family:var(--display);font-size:64px;line-height:1;color:var(--gold)}
+.final small{display:block;font-size:23px;color:var(--muted);margin-top:6px}
+.bars{display:flex;flex-direction:column;gap:12px}
+.bar{display:grid;grid-template-columns:100px 1fr 54px;align-items:center;gap:10px;font-family:var(--display);font-size:24px}
+.bar b{font-weight:400;color:var(--k);white-space:nowrap}
+.bar .track{height:18px;background:var(--line);border-radius:9px;overflow:hidden}
+.bar .fill{height:100%;background:var(--k);border-radius:9px;width:0;transition:width .8s ease}
+.missed{background:var(--bg2);border-radius:16px;padding:14px 16px}
+.missed h3{font-family:var(--display);font-weight:400;font-size:25px;margin:0 0 8px}
+.missed li{font-size:20px;line-height:1.5;margin-bottom:4px}
+.missed ul{margin:0;padding-left:20px}
+.missed em{font-style:normal;color:var(--k);font-family:var(--display)}
+
+@media (prefers-reduced-motion: reduce){
+  .card.drop,.card.shake{animation:none}
+  .sheet{transition:none}
+}
+</style>
+</head>
+<body>
+
+<!-- START -->
+<section class="screen on" id="start" aria-label="시작 화면">
+  <h1>열 대포</h1>
+  <p class="sub">어떤 성질을 이용한 걸까?</p>
+  <div class="intro">
+    <div style="--k:var(--c)"><b>열전도도</b><span>열이 물질 속을 <strong>얼마나 빨리 이동</strong>하나?</span></div>
+    <div style="--k:var(--s)"><b>비열</b><span>같은 열을 받으면 온도가 <strong>몇 도 오르나</strong>?</span></div>
+    <div style="--k:var(--x)"><b>열팽창</b><span>온도가 오르면 <strong>얼마나 늘어나나</strong>?</span></div>
+  </div>
+  <button class="big" id="go">시작하기</button>
+  <div class="copy">Copyright 2026 엘레나</div>
+</section>
+
+<!-- GUIDE -->
+<section class="screen" id="guide" aria-label="점수 안내">
+  <h1>🏆 높은 점수 받는 법</h1>
+  <div class="tip"><div class="ic">🎯</div><div><div class="tt">처음에 맞히면 <em>+100점</em></div><div class="dd">카드마다 대포를 한 번만 쏠 수 있어요.</div></div></div>
+  <div class="tip"><div class="ic">🔥</div><div><div class="tt">연속으로 맞히면 <em>콤보 보너스</em></div><div class="dd">이어서 맞힐 때마다 점수가 20점씩 커져요. 틀리면 콤보가 끊겨요.</div>
+    <div class="chain"><span>100</span><i>→</i><span>120</span><i>→</i><span>140</span><i>→</i><span>160</span></div></div></div>
+  <div class="tip"><div class="ic">🔁</div><div><div class="tt">틀린 카드는 <em>한 번 더</em> 나와요</div><div class="dd">마지막에 다시 나온 카드를 맞히면 +50점이에요.</div></div></div>
+  <div class="key">⏸ 시간 점수는 없어요!<br>빨리 쏘는 것보다 정확하게 쏘는 사람이 이겨요</div>
+  <p class="sound-note">🔊 소리를 켜면 더 재미있어요</p>
+  <button class="big" id="play">게임 시작</button>
+</section>
+
+<!-- GAME -->
+<section class="screen" id="game" aria-label="게임 화면">
+  <div class="hud">
+    <span id="sc">0점</span>
+    <span class="combo" id="cb"></span>
+    <span id="pg">1 / 12</span>
+    <button class="mute" id="mute" aria-label="소리 끄기">🔊</button>
+  </div>
+  <div class="dots" id="dots"></div>
+  <div class="arena">
+    <div class="card" id="card"><div class="emo" id="emo"></div><div class="txt" id="txt"></div></div>
+    <div class="think" id="think">⏸ 시간이 멈췄어요. 천천히 생각해요</div>
+  </div>
+  <div class="cannons">
+    <button class="cannon" data-k="c" style="--k:var(--c)"><div class="gun"><div class="base"></div><div class="barrel"></div></div><div class="name">열전도도</div><div class="hint">얼마나 빨리<br>이동하나</div></button>
+    <button class="cannon" data-k="s" style="--k:var(--s)"><div class="gun"><div class="base"></div><div class="barrel"></div></div><div class="name">비열</div><div class="hint">온도가 몇 도<br>오르나</div></button>
+    <button class="cannon" data-k="x" style="--k:var(--x)"><div class="gun"><div class="base"></div><div class="barrel"></div></div><div class="name">열팽창</div><div class="hint">얼마나<br>늘어나나</div></button>
+  </div>
+  <div class="sheet" id="sheet" role="dialog" aria-live="polite">
+    <h2 id="sh"></h2>
+    <div class="ans" id="sa"></div>
+    <p class="q" id="sq"></p>
+    <p class="why" id="sw"></p>
+    <p class="later" id="sl"></p>
+    <button class="big" id="next">다음</button>
+  </div>
+</section>
+
+<!-- END -->
+<section class="screen" id="end" aria-label="결과 화면">
+  <h1>결과</h1>
+  <div class="final"><span id="fs">0</span>점<small id="fa"></small></div>
+  <div id="badge"></div>
+  <div class="bars" id="bars"></div>
+  <div class="missed" id="missed"></div>
+  <button class="big" id="again">다시 하기</button>
+  <div class="copy">Copyright 2026 엘레나</div>
+</section>
+
+<script>
+const CATS={
+  c:{name:'열전도도',q:'열이 물질 속을 얼마나 빨리 이동하나?',color:'var(--c)',hex:'#ff7a45'},
+  s:{name:'비열',q:'같은 열을 받으면 온도가 몇 도 오르나?',color:'var(--s)',hex:'#3fc1c9'},
+  x:{name:'열팽창',q:'온도가 오르면 얼마나 늘어나나?',color:'var(--x)',hex:'#b78cff'}
+};
+const IRON=`<svg viewBox="0 0 130 100" role="img" aria-label="다리미"><path d="M58 40V26q0-10 10-10h36q10 0 10 10v14" fill="none" stroke="#9aa3c7" stroke-width="9" stroke-linecap="round"/><path d="M12 74Q18 44 62 40h50q8 0 8 8v26z" fill="#dfe4f5"/><circle cx="92" cy="57" r="8" fill="#ff7a45"/><path d="M6 84l8-10h106v10z" fill="#8b93b8"/><path d="M30 92q5-4 10 0t10 0M62 92q5-4 10 0t10 0M94 92q5-4 10 0" fill="none" stroke="#ff7a45" stroke-width="3" stroke-linecap="round"/></svg>`;
+const PONG=`<svg viewBox="0 0 200 100" role="img" aria-label="찌그러진 탁구공이 둥글게 펴진다"><defs><radialGradient id="dent" cx="55%" cy="40%" r="60%"><stop offset="0" stop-color="#b9ab92"/><stop offset=".6" stop-color="#d9cdb6"/><stop offset="1" stop-color="#fff4e6" stop-opacity="0"/></radialGradient></defs><path d="M44 24.2Q57 33 71.8 50A30 30 0 1 1 44 24.2Z" fill="#fff4e6"/><ellipse cx="58" cy="40" rx="15" ry="10" transform="rotate(42 58 40)" fill="url(#dent)"/><path d="M50 32q6 5 9 11M57 30q5 5 8 11" fill="none" stroke="#a89a80" stroke-width="2" stroke-linecap="round"/><path d="M24 50a20 20 0 0 1 8-12" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round"/><path d="M84 54h34" stroke="#ff7a45" stroke-width="7" stroke-linecap="round"/><path d="M114 42l14 12-14 12z" fill="#ff7a45"/><text x="102" y="36" font-size="22" text-anchor="middle">♨️</text><circle cx="162" cy="54" r="30" fill="#fff4e6"/><path d="M144 50a20 20 0 0 1 8-12" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round"/></svg>`;
+const BOTTLE=`<svg viewBox="0 0 130 120" role="img" aria-label="고무 찜질팩"><path d="M10 50q-6-8 0-16M10 80q-6-8 0-16M120 50q6-8 0-16M120 80q6-8 0-16" fill="none" stroke="#ff7a45" stroke-width="3" stroke-linecap="round"/><rect x="55" y="4" width="20" height="10" rx="3" fill="#5c5f7a"/><path d="M57 14H73V28Q73 32 80 34Q104 38 106 54V100Q106 114 92 114H38Q24 114 24 100V54Q26 38 50 34Q57 32 57 28Z" fill="#e2574c"/><path d="M36 54H94M34 64H96M34 74H96M34 84H96M34 94H96M36 104H94" stroke="#c9443a" stroke-width="4" stroke-linecap="round"/><path d="M30 56Q32 44 46 40" fill="none" stroke="#f6b0a8" stroke-width="4" stroke-linecap="round"/></svg>`;
+const WIRE=`<svg viewBox="0 0 160 110" role="img" aria-label="전봇대 사이에 늘어진 전깃줄"><circle cx="80" cy="16" r="9" fill="#ffd166"/><path d="M80 1v4M80 27v4M65 16h4M91 16h4M70 6l3 3M87 23l3 3M90 6l-3 3M73 23l-3 3" stroke="#ffd166" stroke-width="2.5" stroke-linecap="round"/><rect x="14" y="20" width="8" height="88" rx="2" fill="#8a6a50"/><rect x="138" y="20" width="8" height="88" rx="2" fill="#8a6a50"/><rect x="4" y="26" width="28" height="5" rx="2" fill="#6f553f"/><rect x="128" y="26" width="28" height="5" rx="2" fill="#6f553f"/><path d="M8 28Q80 98 152 28" fill="none" stroke="#dfe4f5" stroke-width="3"/><path d="M28 28Q80 86 132 28" fill="none" stroke="#dfe4f5" stroke-width="3"/><circle cx="8" cy="27" r="3" fill="#b4add6"/><circle cx="28" cy="27" r="3" fill="#b4add6"/><circle cx="132" cy="27" r="3" fill="#b4add6"/><circle cx="152" cy="27" r="3" fill="#b4add6"/></svg>`;
+const JOINT=`<svg viewBox="0 0 130 120" role="img" aria-label="다리 이음새의 지그재그 금속 틈"><rect x="36" y="10" width="58" height="100" fill="#14122a"/><rect x="0" y="10" width="40" height="100" fill="#6b6f8a"/><rect x="90" y="10" width="40" height="100" fill="#6b6f8a"/><path d="M6 60H32M98 60H124" stroke="#ffd166" stroke-width="4" stroke-dasharray="9 7"/><polygon points="38,10 48,10 72,20 48,30 72,40 48,50 72,60 48,70 72,80 48,90 72,100 48,110 38,110" fill="#dfe4f5" stroke="#8b93b8" stroke-width="1.5" stroke-linejoin="round"/><polygon points="92,10 56,10 80,20 56,30 80,40 56,50 80,60 56,70 80,80 56,90 80,100 56,110 92,110" fill="#aab3d0" stroke="#7d84a6" stroke-width="1.5" stroke-linejoin="round"/><circle cx="43" cy="20" r="2" fill="#7d84a6"/><circle cx="43" cy="100" r="2" fill="#7d84a6"/><circle cx="87" cy="20" r="2" fill="#7d84a6"/><circle cx="87" cy="100" r="2" fill="#7d84a6"/></svg>`;
+const RAIL=`<svg viewBox="0 0 170 110" role="img" aria-label="기찻길 레일 사이의 틈"><circle cx="146" cy="18" r="9" fill="#ffd166"/><path d="M146 3v4M146 29v4M131 18h4M157 18h4M136 8l3 3M153 25l3 3M156 8l-3 3M139 25l-3 3" stroke="#ffd166" stroke-width="2.5" stroke-linecap="round"/><path d="M4 88l18-36h126l18 36z" fill="#5a4a3e"/><g fill="#8a6a50"><path d="M12 82l6-12h20l-4 12z"/><path d="M44 82l4-12h20l-2 12z"/><path d="M76 82l2-12h18l1 12z"/><path d="M106 82l0-12h20l3 12z"/><path d="M138 82l-3-12h19l6 12z"/></g><path d="M16 66H81" stroke="#dfe4f5" stroke-width="6" stroke-linecap="round"/><path d="M93 66H158" stroke="#dfe4f5" stroke-width="6" stroke-linecap="round"/><path d="M10 78H81" stroke="#dfe4f5" stroke-width="7" stroke-linecap="round"/><path d="M93 78H164" stroke="#dfe4f5" stroke-width="7" stroke-linecap="round"/><circle cx="87" cy="72" r="16" fill="none" stroke="#ff7a45" stroke-width="3"/><path d="M79 44l8 10 8-10" fill="none" stroke="#ff7a45" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/><text x="76" y="36" font-size="16" fill="#ff7a45" text-anchor="middle" font-weight="bold" font-family="Jua, sans-serif">선로 사이의 틈</text></svg>`;
+const BANK=[
+  {a:'c',e:'🍳',t:'냄비 손잡이를 플라스틱이나 나무로 만든다',w:'플라스틱과 나무는 열을 잘 전달하지 않아서 손잡이까지 열이 잘 오지 않아요.'},
+  {a:'c',e:'🪟',t:'유리 두 장 사이에 공기층이 있는 이중창을 단다',w:'공기는 열전도도가 낮아서 방 안의 열이 바깥으로 잘 빠져나가지 않아요.'},
+  {a:'c',e:'🧊',t:'아이스박스를 스타이로폼으로 만든다',w:'스타이로폼은 열을 잘 전달하지 않아서 바깥 열이 안으로 잘 들어오지 않아요.'},
+  {a:'c',e:IRON,t:'다리미 바닥을 금속으로 만든다',w:'금속은 열을 잘 전달해서 다리미의 열이 옷으로 빨리 이동해요.'},
+  {a:'c',e:'🪑',t:'같은 방에서 금속 의자가 나무 의자보다 더 차갑게 느껴진다',w:'두 의자의 온도는 같아요! 금속이 내 몸의 열을 더 빨리 가져가서 차갑게 느껴져요.'},
+  {a:'c',e:'🥘',t:'음식이 골고루 익도록 냄비 바닥에 구리판을 덧댄다',w:'구리는 열을 아주 잘 전달해서 불의 열이 냄비 바닥 전체로 빨리 퍼져요.'},
+  {a:'s',e:BOTTLE,t:'찜질팩 안에 물을 넣으면 오랫동안 따뜻하다',w:'물은 비열이 커서 열을 내보내도 온도가 천천히 내려가요.'},
+  {a:'s',e:'🚗',t:'자동차 엔진을 식히는 냉각수로 물을 쓴다',w:'물은 비열이 커서 엔진의 열을 많이 받아도 온도가 크게 오르지 않아요.'},
+  {a:'s',e:'🫕',t:'같은 불로 데우면 식용유가 물보다 빨리 뜨거워진다',w:'식용유는 물보다 비열이 작아서 같은 열을 받아도 온도가 더 많이 올라요.'},
+  {a:'s',e:'🏖️',t:'한낮 해변에서 모래는 뜨겁지만 바닷물은 미지근하다',w:'모래는 비열이 작아 온도가 많이 오르고, 물은 비열이 커서 조금만 올라요.'},
+  {a:'s',e:'🏜️',t:'사막은 낮과 밤의 기온 차이가 매우 크다',w:'모래는 비열이 작아서 낮에는 금방 뜨거워지고 밤에는 금방 식어요.'},
+  {a:'s',e:'🧍',t:'우리 몸은 대부분 물이라 체온이 쉽게 변하지 않는다',w:'물은 비열이 커서 열이 조금 들어오거나 나가도 온도가 거의 변하지 않아요.'},
+  {a:'x',e:RAIL,t:'기찻길 레일 사이에 틈을 둔다',w:'여름에 레일의 온도가 오르면 늘어나요. 틈이 없으면 레일이 휘어져요.'},
+  {a:'x',e:JOINT,t:'다리 이음새에 틈을 둔다',w:'다리는 더울 때 늘어나고 추울 때 줄어들어요. 틈이 그 길이 변화를 받아 줘요.'},
+  {a:'x',e:WIRE,t:'여름에는 전깃줄이 겨울보다 더 처져 있다',w:'온도가 오르면 전깃줄이 길어져서 아래로 더 처져요.'},
+  {a:'x',e:'🫙',t:'안 열리는 금속 뚜껑을 뜨거운 물에 담그면 잘 열린다',w:'금속 뚜껑이 유리병보다 더 많이 늘어나서 틈이 생겨요.'},
+  {a:'x',e:'🌡️',t:'온도계의 빨간 액체가 따뜻해지면 위로 올라간다',w:'온도가 오르면 액체의 부피가 늘어나서 가는 관을 따라 올라가요.'},
+  {a:'x',e:PONG,t:'찌그러진 탁구공을 뜨거운 물에 넣으면 펴진다',w:'공 안의 공기가 데워져 부피가 늘어나면서 찌그러진 곳을 밀어내요.'}
+];
+const PER=4;
+const $=id=>document.getElementById(id);
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+let queue,total,done,score,combo,stats,missed,cur,busy;
+
+/* ================= SOUND (Web Audio, 파일 없이 합성) ================= */
+let AC=null,master=null,noiseB=null,muted=false;
+function ac(){
+  try{
+    if(!AC){
+      AC=new (window.AudioContext||window.webkitAudioContext)();
+      const comp=AC.createDynamicsCompressor();comp.threshold.value=-14;comp.ratio.value=6;
+      master=AC.createGain();master.gain.value=.9;master.connect(comp);comp.connect(AC.destination);
+      const len=AC.sampleRate*1.2;noiseB=AC.createBuffer(1,len,AC.sampleRate);
+      const d=noiseB.getChannelData(0);for(let i=0;i<len;i++)d[i]=Math.random()*2-1;
+    }
+    if(AC.state==='suspended')AC.resume();
+  }catch(e){AC=null}
+  return AC;
+}
+function tone(type,f0,f1,dur,vol,delay=0){
+  if(muted||!ac())return;
+  const t=AC.currentTime+delay,o=AC.createOscillator(),g=AC.createGain();
+  o.type=type;o.frequency.setValueAtTime(f0,t);o.frequency.exponentialRampToValueAtTime(Math.max(f1,1),t+dur);
+  g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(vol,t+.01);g.gain.exponentialRampToValueAtTime(.0001,t+dur);
+  o.connect(g);g.connect(master);o.start(t);o.stop(t+dur+.05);
+}
+function noise(dur,vol,ftype,f0,f1,delay=0){
+  if(muted||!ac())return;
+  const t=AC.currentTime+delay,s=AC.createBufferSource(),f=AC.createBiquadFilter(),g=AC.createGain();
+  s.buffer=noiseB;f.type=ftype;f.frequency.setValueAtTime(f0,t);f.frequency.exponentialRampToValueAtTime(Math.max(f1,1),t+dur);
+  g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(vol,t+.008);g.gain.exponentialRampToValueAtTime(.0001,t+dur);
+  s.connect(f);f.connect(g);g.connect(master);s.start(t);s.stop(t+dur+.05);
+}
+const sfx={
+  click(){tone('triangle',700,900,.07,.2)},
+  drop(){noise(.35,.12,'bandpass',400,2400);tone('sine',300,700,.25,.08)},
+  fire(){ // 쾅 + 슈욱
+    tone('square',180,45,.22,.35);noise(.12,.6,'lowpass',4000,400);
+    noise(.4,.25,'bandpass',2500,500,.03);
+  },
+  hit(c){ // 콰광 + 반짝이는 콤보음
+    tone('sine',140,30,.7,1);noise(.9,.9,'lowpass',5000,120);
+    noise(.25,.5,'highpass',3000,8000,.02);
+    const up=1+Math.min(c,8)*.07;
+    [660,880,1320].forEach((f,i)=>tone('triangle',f*up,f*up,.18,.22,.1+i*.07));
+    if(c>=3)tone('sine',1760*up,2640*up,.35,.15,.32);
+  },
+  miss(){ // 띠용 + 텅
+    tone('square',520,140,.35,.18);tone('triangle',300,600,.15,.15,.05);tone('triangle',600,180,.3,.15,.2);
+    noise(.15,.3,'lowpass',900,200);
+  },
+  end(){[523,659,784,1047].forEach((f,i)=>tone('triangle',f,f,.32,.25,i*.13));tone('sine',1047,1047,.8,.15,.52)}
+};
+
+/* ================= GAME ================= */
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('on',s.id===id))}
+function center(el){const r=el.getBoundingClientRect();return{x:r.left+r.width/2,y:r.top+r.height/2}}
+function fx(cls,x,y,style){const d=document.createElement('div');d.className='fx '+cls;if(x!=null){d.style.left=x+'px';d.style.top=y+'px'}if(style)Object.assign(d.style,style);document.body.appendChild(d);return d}
+function anim(el,kf,opt){const a=el.animate(kf,opt);a.onfinish=()=>el.remove();return a}
+
+function start(){
+  ac();sfx.click();
+  queue=[];
+  ['c','s','x'].forEach(k=>queue.push(...shuffle(BANK.filter(b=>b.a===k)).slice(0,PER).map(b=>({...b,retry:false}))));
+  shuffle(queue);
+  total=queue.length;done=0;score=0;combo=0;missed=[];
+  stats={c:[0,0],s:[0,0],x:[0,0]};
+  $('dots').innerHTML='<i></i>'.repeat(total);
+  $('sc').textContent='0점';$('cb').textContent='';
+  show('game');next(true);
+}
+
+function next(first){
+  $('sheet').classList.remove('on');
+  if(!first)sfx.click();
+  if(!queue.length){finish();return}
+  cur=queue.shift();
+  const card=$('card');
+  card.className='card';card.style.visibility='';
+  card.querySelector('.tag')?.remove();
+  if(cur.retry){const t=document.createElement('div');t.className='tag';t.textContent='다시 도전';card.appendChild(t)}
+  $('emo').innerHTML=cur.e;$('txt').textContent=cur.t;
+  void card.offsetWidth;card.classList.add('drop');sfx.drop();
+  const dots=$('dots').children;
+  if(!cur.retry&&dots[done])dots[done].classList.add('now');
+  $('pg').textContent=cur.retry?'다시':`${Math.min(done+1,total)} / ${total}`;
+  $('think').style.visibility='visible';
+  document.querySelectorAll('.cannon').forEach(b=>{b.disabled=false;b.classList.remove('fired');b.querySelector('.barrel').style.transform=''});
+  busy=false;
+}
+
+function fire(btn){
+  if(busy)return;busy=true;
+  const k=btn.dataset.k,ok=k===cur.a,col=CATS[k].color;
+  document.querySelectorAll('.cannon').forEach(b=>b.disabled=true);
+  btn.classList.add('fired');
+  $('think').style.visibility='hidden';
+  const barrel=btn.querySelector('.barrel');
+  const from=center(barrel),to=center($('card'));
+  const ang=Math.atan2(to.x-from.x,from.y-to.y)*180/Math.PI;
+  barrel.style.transform=`rotate(${ang}deg)`;
+  sfx.fire();
+  // 반동 + 포구 화염
+  if(!reduce){
+    btn.querySelector('.gun').animate([{transform:'translateY(0)'},{transform:'translateY(8px)'},{transform:'translateY(0)'}],{duration:220,easing:'ease-out'});
+    const m=fx('muzzle',from.x,from.y);m.style.setProperty('--k',col);
+    anim(m,[{transform:'scale(.3)',opacity:1},{transform:'scale(1.8)',opacity:0}],{duration:260});
+  }
+  const ball=fx('ball',from.x,from.y);ball.style.setProperty('--k',col);
+  const dx=to.x-from.x,dy=to.y-from.y;
+  ball.animate([{transform:'translate(0,0) scale(.6)'},{transform:`translate(${dx*.5}px,${dy*.5-50}px) scale(1.1)`},{transform:`translate(${dx}px,${dy}px) scale(1)`}],{duration:reduce?1:400,easing:'ease-in',fill:'forwards'});
+  // 꼬리 불꽃
+  if(!reduce){for(let i=1;i<=6;i++)setTimeout(()=>{const r=ball.getBoundingClientRect();const t=fx('spark',r.left+11,r.top+11,{width:'10px',height:'10px',margin:'-5px 0 0 -5px',background:CATS[k].hex});anim(t,[{opacity:.8,transform:'scale(1)'},{opacity:0,transform:'scale(.2)'}],{duration:300})},i*55)}
+  setTimeout(()=>{ if(ok){ball.remove();hit(to,k)} else miss(ball,dx,dy) },reduce?10:400);
+  setTimeout(()=>result(ok),reduce?60:(ok?950:850));
+}
+
+function hit(p,k){
+  sfx.hit(combo+1);
+  const col=CATS[k].hex,card=$('card'),r=card.getBoundingClientRect();
+  if(reduce){card.style.visibility='hidden';return}
+  // 화면 번쩍 + 흔들림
+  anim(fx('flash'),[{opacity:.45},{opacity:0}],{duration:180});
+  $('game').animate([{transform:'translate(0,0)'},{transform:'translate(-10px,6px)'},{transform:'translate(9px,-7px)'},{transform:'translate(-6px,4px)'},{transform:'translate(3px,-2px)'},{transform:'translate(0,0)'}],{duration:380});
+  // 카드 조각
+  card.style.visibility='hidden';
+  const w=r.width/2,h=r.height/2;
+  [[0,0],[1,0],[0,1],[1,1]].forEach(([i,j])=>{
+    const s=fx('shard',r.left+i*w,r.top+j*h,{width:w+'px',height:h+'px'});s.style.setProperty('--k',col);
+    const vx=(i?1:-1)*(80+Math.random()*90),vy=(j?1:-1)*(60+Math.random()*80)+40,rot=(Math.random()*2-1)*120;
+    anim(s,[{transform:'translate(0,0) rotate(0)',opacity:1},{transform:`translate(${vx}px,${vy+160}px) rotate(${rot}deg) scale(.6)`,opacity:0}],{duration:800,easing:'cubic-bezier(.2,.6,.5,1)'});
+  });
+  // 충격파 링 두 개
+  [0,90].forEach(d=>setTimeout(()=>{const g=fx('ring',p.x,p.y);g.style.setProperty('--k',col);anim(g,[{transform:'scale(.2)',opacity:1},{transform:'scale(4.5)',opacity:0}],{duration:600,easing:'ease-out'})},d));
+  // 불꽃 파편 (콤보가 높을수록 많이)
+  const n=34+Math.min(combo,6)*6;
+  for(let i=0;i<n;i++){
+    const sz=6+Math.random()*12;
+    const s=fx('spark',p.x,p.y,{width:sz+'px',height:sz+'px',margin:`-${sz/2}px 0 0 -${sz/2}px`,background:i%4===0?'#fff':(i%4===1?'#ffd166':col)});
+    const a=Math.random()*Math.PI*2,d=90+Math.random()*170;
+    anim(s,[{transform:'translate(0,0) scale(1)',opacity:1},{transform:`translate(${Math.cos(a)*d}px,${Math.sin(a)*d*.8}px) scale(.8)`,opacity:1,offset:.6},{transform:`translate(${Math.cos(a)*d*1.1}px,${Math.sin(a)*d*.8+90}px) scale(.1)`,opacity:0}],{duration:800+Math.random()*400,easing:'cubic-bezier(.1,.7,.3,1)'});
+  }
+}
+
+function miss(ball,dx,dy){
+  sfx.miss();
+  const card=$('card');card.classList.remove('drop');card.classList.add('shake');
+  anim(ball,[{transform:`translate(${dx}px,${dy}px)`,opacity:1},{transform:`translate(${dx*.6+(dx>0?-90:90)}px,${dy-40}px)`,opacity:1,offset:.3},{transform:`translate(${dx*.6+(dx>0?-120:120)}px,${dy+300}px)`,opacity:0}],{duration:600,easing:'ease-in',fill:'forwards'});
+}
+
+function result(ok){
+  const first=!cur.retry;
+  if(first){
+    stats[cur.a][1]++;
+    if(ok)stats[cur.a][0]++;else missed.push(cur);
+    const dot=$('dots').children[done];dot.classList.remove('now');dot.classList.add(ok?'ok':'no');
+    done++;
+  }
+  if(ok){
+    const gain=(first?100:50)+combo*20;score+=gain;combo++;
+    $('sc').textContent=score+'점';
+    const cb=$('cb');cb.textContent=combo>1?`🔥 ${combo} 콤보`:'';cb.classList.add('pop');setTimeout(()=>cb.classList.remove('pop'),220);
+    const p=center($('card'));
+    const pop=fx('score-pop',p.x,p.y);pop.textContent='+'+gain;
+    anim(pop,[{transform:'translate(-50%,-50%) scale(.4)',opacity:0},{transform:'translate(-50%,-80%) scale(1.3)',opacity:1,offset:.25},{transform:'translate(-50%,-180%) scale(1)',opacity:0}],{duration:1100});
+    if(combo>=2&&!reduce){
+      const c=fx('combo-pop',p.x,p.y+70);c.textContent=`${combo} 콤보!`;
+      anim(c,[{transform:'translate(-50%,-50%) scale(2)',opacity:0},{transform:'translate(-50%,-50%) scale(1)',opacity:1,offset:.2},{transform:'translate(-50%,-50%) scale(1)',opacity:1,offset:.7},{transform:'translate(-50%,-70%) scale(.9)',opacity:0}],{duration:1100});
+    }
+  }else{
+    combo=0;$('cb').textContent='';
+    if(first)queue.push({...cur,retry:true});
+  }
+  const sheet=$('sheet');sheet.style.setProperty('--k',CATS[cur.a].color);
+  $('sh').textContent=ok?'명중!':'빗나갔어요';$('sh').className=ok?'ok':'no';
+  $('sa').textContent='정답: '+CATS[cur.a].name;
+  $('sq').textContent=CATS[cur.a].q;
+  $('sw').textContent=cur.w;
+  $('sl').textContent=(!ok&&first)?'이 카드는 마지막에 한 번 더 나와요.':'';
+  $('sl').style.display=$('sl').textContent?'block':'none';
+  sheet.classList.add('on');
+  setTimeout(()=>$('next').focus(),320);
+}
+
+function finish(){
+  show('end');sfx.end();
+  const right=Object.values(stats).reduce((s,v)=>s+v[0],0);
+  $('fs').textContent=score;
+  $('fa').textContent=`처음에 맞힌 문제 ${right} / ${total}`;
+  $('bars').innerHTML=Object.entries(CATS).map(([k,c])=>{
+    const [r,t]=stats[k];return `<div class="bar" style="--k:${c.color}"><b>${c.name}</b><div class="track"><div class="fill" data-w="${t?r/t*100:0}"></div></div><span>${r}/${t}</span></div>`}).join('');
+  requestAnimationFrame(()=>requestAnimationFrame(()=>document.querySelectorAll('.fill').forEach(f=>f.style.width=f.dataset.w+'%')));
+  const perfect=right===total;
+  $('badge').innerHTML=perfect
+    ?`<div class="badge-box"><h3>🏅 열 마스터 배지를 받았어요!</h3><img id="bimg" alt="열 마스터 배지"><input id="bname" maxlength="10" placeholder="이름 쓰기" aria-label="배지에 넣을 이름"><button class="big" id="bsave">배지 저장하기</button><p id="bmsg">이름을 쓰면 배지에 들어가요</p></div>`
+    :`<div class="no-badge">🏅 모든 카드를 <b>처음에</b> 맞히면<br>열 마스터 배지를 받을 수 있어요!</div>`;
+  if(perfect){
+    drawBadge('');
+    let tmr;$('bname').oninput=e=>{clearTimeout(tmr);tmr=setTimeout(()=>drawBadge(e.target.value.trim()),200)};
+    $('bsave').onclick=saveBadge;
+    setTimeout(()=>{tone('sine',1568,1568,.5,.15);tone('sine',2093,2093,.7,.12,.15)},700);
+  }
+  $('missed').innerHTML=missed.length
+    ?'<h3>다시 보면 좋은 카드</h3><ul>'+missed.map(m=>`<li style="--k:${CATS[m.a].color}">${m.e} ${m.t} → <em>${CATS[m.a].name}</em></li>`).join('')+'</ul>'
+    :'<h3>🎉 모든 카드를 한 번에 맞혔어요!</h3>';
+}
+
+/* ================= BADGE ================= */
+const BC=document.createElement('canvas');BC.width=BC.height=1080;
+function fitText(ctx,txt,size,max,font){let f=size;do{ctx.font=`${f}px ${font}`;f-=4}while(ctx.measureText(txt).width>max&&f>16)}
+async function drawBadge(name){
+  try{await document.fonts.load('120px Jua')}catch(e){}
+  const x=BC.getContext('2d'),S=1080,cx=540,cy=450,F='Jua, sans-serif';
+  x.fillStyle='#1b1932';x.fillRect(0,0,S,S);
+  const g=x.createRadialGradient(cx,cy,60,cx,cy,520);g.addColorStop(0,'rgba(255,209,102,.28)');g.addColorStop(1,'rgba(255,209,102,0)');
+  x.fillStyle=g;x.fillRect(0,0,S,S);
+  // 빛줄기
+  x.save();x.translate(cx,cy);x.fillStyle='rgba(255,209,102,.08)';
+  for(let i=0;i<16;i++){x.rotate(Math.PI/8);x.beginPath();x.moveTo(0,0);x.lineTo(-40,-560);x.lineTo(40,-560);x.fill()}
+  x.restore();
+  // 세 가지 색 링
+  [['#ff7a45',-90],['#3fc1c9',30],['#b78cff',150]].forEach(([c,a])=>{x.beginPath();x.strokeStyle=c;x.lineWidth=48;x.lineCap='round';x.arc(cx,cy,330,(a+6)*Math.PI/180,(a+114)*Math.PI/180);x.stroke()});
+  x.beginPath();x.fillStyle='#2c2850';x.arc(cx,cy,290,0,Math.PI*2);x.fill();
+  x.beginPath();x.strokeStyle='#ffd166';x.lineWidth=6;x.arc(cx,cy,290,0,Math.PI*2);x.stroke();
+  x.textAlign='center';x.textBaseline='middle';
+  x.font='140px sans-serif';x.fillText('🔥',cx,cy-120);
+  x.fillStyle='#ffd166';fitText(x,'열 마스터',128,500,F);x.fillText('열 마스터',cx,cy+40);
+  x.fillStyle='#f4f1ff';x.font=`54px ${F}`;x.fillText(`${total} / ${total} 완벽!`,cx,cy+150);
+  // 세 성질 (각자 색)
+  const words=[['열전도도','#ff7a45'],['비열','#3fc1c9'],['열팽창','#b78cff']];
+  x.font=`52px ${F}`;const gap=50;const ws=words.map(w=>x.measureText(w[0]).width);
+  let sx=cx-(ws.reduce((a,b)=>a+b,0)+gap*2)/2;x.textAlign='left';
+  words.forEach((w,i)=>{x.fillStyle=w[1];x.fillText(w[0],sx,850);sx+=ws[i]+gap});
+  x.textAlign='center';
+  if(name){x.fillStyle='#f4f1ff';fitText(x,name,72,900,F);x.fillText(name,cx,950)}
+  x.fillStyle='#b4add6';x.font=`34px ${F}`;x.fillText(new Date().toLocaleDateString('ko-KR'),cx,1030);
+  const img=$('bimg');if(img)img.src=BC.toDataURL('image/png');
+}
+async function saveBadge(){
+  const msg=t=>$('bmsg').textContent=t;
+  const name=($('bname').value||'').trim();
+  await drawBadge(name);sfx.click();
+  const blob=await new Promise(r=>BC.toBlob(r,'image/png'));
+  const filename=`열마스터배지${name?'_'+name:''}.png`;
+  if(window.claude&&typeof claude.use==='function'){
+    let dl=null;try{dl=await claude.use('downloads')}catch(e){}
+    if(!dl){msg('배지 그림을 길게 눌러 저장하세요');return}
+    try{await dl.save({filename,data:blob});msg('저장했어요! 🎉')}
+    catch(e){msg(e&&e.code==='declined'?'저장을 취소했어요':'배지 그림을 길게 눌러 저장하세요')}
+  }else{
+    const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=filename;document.body.appendChild(a);a.click();a.remove();
+    setTimeout(()=>URL.revokeObjectURL(a.href),4000);msg('저장했어요! 🎉');
+  }
+}
+
+$('go').onclick=()=>{ac();sfx.click();show('guide')};
+$('play').onclick=start;
+$('again').onclick=start;
+$('next').onclick=()=>next(false);
+$('mute').onclick=()=>{muted=!muted;$('mute').textContent=muted?'🔇':'🔊';$('mute').setAttribute('aria-label',muted?'소리 켜기':'소리 끄기');if(!muted)sfx.click()};
+document.querySelectorAll('.cannon').forEach(b=>b.onclick=()=>fire(b));
+</script>
+</body>
+</html>
